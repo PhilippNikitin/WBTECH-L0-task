@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Order Search</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: #f2f2f2;
+        }
+
+        .container-outer {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        input[type=text] {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 200px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .order-details-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            text-align: left;
+        }
+
+        .order-details-row {
+            display: flex;
+            width: 100%;
+        }
+
+        .order-details-column {
+            flex: 1;
+            padding: 20px;
+            border: 1px solid black;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-outer" id="container-outer">
+        <div class="container">
+            <h2>Order Lookup</h2>
+            <input type="text" id="orderUID" placeholder="Enter Order UID">
+            <button onclick="getOrderData()">Search</button>
+            <div id="result"></div>
+        </div>
+    </div>
+
+    <script>
+        function getOrderData() {
+            var orderUID = document.getElementById("orderUID").value;
+            fetch("/order?order_uid=" + orderUID)
+                .then(response => {
+                    if (!response.ok) {
+                        return response.text().then(text => {
+                            throw new Error(text);
+                        });
+                        }
+                        return response.json();
+                         })
+                .then(data => {
+                    var resultDiv = document.getElementById("result");
+                        resultDiv.innerHTML = "";
+
+                    var orderData = `
+                        <div class="order-details-row">
+                            <div class="order-details-column">
+                                <h3>General Info</h3>
+                                <p>Order UID: ${data.order_uid}</p>
+                                <p>Track Number: ${data.track_number}</p>
+                                <p>Entry: ${data.entry}</p>
+                                <p>Locale: ${data.locale}</p>
+                                <p>Internal Signature: ${data.internal_signature}</p>
+                                <p>Customer ID: ${data.customer_id}</p>
+                                <p>Delivery Service: ${data.delivery_service}</p>
+                                <p>Shardkey: ${data.shardkey}</p>
+                                <p>SM ID: ${data.sm_id}</p>
+                                <p>Date Created: ${data.date_created}</p>
+                                <p>OOF Shard: ${data.oof_shard}</p>
+                            </div>
+                            <div class="order-details-column">
+                                <h3>Delivery</h3>
+                                <p>Name: ${data.delivery.name}</p>
+                                <p>Phone: ${data.delivery.phone}</p>
+                                <p>Zip: ${data.delivery.zip}</p>
+                                <p>City: ${data.delivery.city}</p>
+                                <p>Address: ${data.delivery.address}</p>
+                                <p>Region: ${data.delivery.region}</p>
+                                <p>Email: ${data.delivery.email}</p>
+                            </div>
+                            <div class="order-details-column">
+                                <h3>Payment</h3>
+                                <p>Transaction: ${data.payment.transaction}</p>
+                                <p>Request ID: ${data.payment.request_id}</p>
+                                <p>Currency: ${data.payment.currency}</p>
+                                <p>Provider: ${data.payment.provider}</p>
+                                <p>Amount: ${data.payment.amount}</p>
+                                <p>Payment DT: ${data.payment.payment_dt}</p>
+                                <p>Bank: ${data.payment.bank}</p>
+                                <p>Delivery Cost: ${data.payment.delivery_cost}</p>
+                                <p>Goods Total: ${data.payment.goods_total}</p>
+                                <p>Custom Fee: ${data.payment.custom_fee}</p>
+                            </div>
+                            <div class="order-details-column">
+                                <h3>Items</h3>
+                                <p>Chart ID: ${data.items.chrt_id}</p>
+                                <p>Track Number: ${data.items.track_number}</p>
+                                <p>Price: ${data.items.price}</p>
+                                <p>RID: ${data.items.rid}</p>
+                                <p>Name: ${data.items.name}</p>
+                                <p>Sale: ${data.items.sale}</p>
+                                <p>Size: ${data.items.size}</p>
+                                <p>Total Price: ${data.items.total_price}</p>
+                                <p>NM ID: ${data.items.nm_id}</p>
+                                <p>Brand: ${data.items.brand}</p>
+                                <p>Status: ${data.items.status}</p>
+                            </div>   
+                    `;
+
+                    resultDiv.innerHTML = orderData;
+
+                    var containerOuterElement = document.getElementById("container-outer");
+                    containerOuterElement.style.alignItems = "start";
+                })
+                .catch(error => {
+                    var resultDiv = document.getElementById("result");
+                    resultDiv.innerHTML = `<p style="color: red;">${error.message}</p>`;
+                });
+        }
+    </script>
+</body>
+</html>

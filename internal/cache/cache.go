@@ -6,8 +6,8 @@ import (
 	"log"
 	"sync"
 
-	"sample-app/internal/logging"
-	"sample-app/internal/models"
+	"github.com/PhilippNikitin/WBTECH-L0-task/tree/main/internal/logging"
+	"github.com/PhilippNikitin/WBTECH-L0-task/tree/main/internal/models"
 )
 
 var OrderCache sync.Map

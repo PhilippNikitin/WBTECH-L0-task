@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"sample-app/internal/logging"
+	"github.com/PhilippNikitin/WBTECH-L0-task/tree/main/internal/logging"
 )
 
 // Определяем структуры, которые будут отражать информацию о заказе

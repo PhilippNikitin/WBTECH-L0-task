@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"sample-app/internal/models"
+	"github.com/PhilippNikitin/WBTECH-L0-task/tree/main/internal/models"
 )
 
 // Статически определяем ошибки, которая будут использоваться при валидации данных о заказе

@@ -10,10 +10,10 @@ import (
 	_ "github.com/lib/pq"
 	stan "github.com/nats-io/stan.go"
 
-	"sample-app/internal/cache"
-	"sample-app/internal/logging"
-	"sample-app/internal/models"
-	"sample-app/internal/validation"
+	"github.com/PhilippNikitin/WBTECH-L0-task/tree/main/internal/cache"
+	"github.com/PhilippNikitin/WBTECH-L0-task/tree/main/internal/logging"
+	"github.com/PhilippNikitin/WBTECH-L0-task/tree/main/internal/models"
+	"github.com/PhilippNikitin/WBTECH-L0-task/tree/main/internal/validation"
 )
 
 func main() {

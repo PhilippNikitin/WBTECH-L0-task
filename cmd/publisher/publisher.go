@@ -9,8 +9,8 @@ import (
 	"github.com/brianvoe/gofakeit"
 	"github.com/nats-io/stan.go"
 
-	"sample-app/internal/logging"
-	"sample-app/internal/models"
+	"github.com/PhilippNikitin/WBTECH-L0-task/tree/main/internal/logging"
+	"github.com/PhilippNikitin/WBTECH-L0-task/tree/main/internal/models"
 )
 
 // Определяем функцию для создания случайной строки

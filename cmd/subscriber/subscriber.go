@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -16,19 +15,12 @@ import (
 	"github.com/PhilippNikitin/WBTECH-L0-task/tree/main/internal/validation"
 )
 
-func main() {
-
-	// Подключение к NATS Streaming
-	sc, err := stan.Connect("test-cluster", "subscriber")
-	if err != nil {
-		logging.Logger.Fatalf("Ошибка подключения к NATS Streaming серверу: %v", err)
-	}
-	defer sc.Close()
+func runServerProcessesExceptNATSStreaming() {
 
 	// Подключение к PostgreSQL
-	db, err := sql.Open("postgres", "user=admin password=admin dbname=orders sslmode=require")
+	db, err := models.GetDBConnection()
 	if err != nil {
-		logging.Logger.Fatalf("Ошибка подключения к базе данных PostgreSQL: %v", err)
+		logging.Logger.Fatalf("%v", err)
 	}
 	defer db.Close()
 
@@ -43,6 +35,56 @@ func main() {
 
 	// вывод текущего размера кэша после восстановления
 	log.Printf("Размер кэша после восстановления: %d\n", cache.GetOrderCacheSize(&cache.OrderCache))
+
+	// Определяем хэндлер для получения данных о заказе из кэша по переданному с клиента OrderUID
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		// Подгружаем index.html
+		if r.URL.Path == "/" {
+			http.ServeFile(w, r, "cmd/subscriber/index.html")
+			return
+		}
+		// получаем orderUID из запроса
+		orderUID := r.URL.Query().Get("order_uid")
+		// ищем заказ в кэше
+		orderJSON, ok := cache.OrderCache.Load(orderUID)
+		// обрабатываем ошибку, если заказ не найден в кэше
+		if !ok {
+			err := fmt.Errorf("заказ не найден")
+			http.Error(w, err.Error(), http.StatusNotFound)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		_, err := w.Write(orderJSON.([]byte))
+		// обрабатываем ошибку, если произошла ошибка во время записи заказа в response
+		if err != nil {
+			err := fmt.Errorf("error writing response: %v", err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	})
+
+	// Запуск HTTP-сервера
+	log.Fatal(http.ListenAndServe(":8080", nil))
+
+}
+
+func main() {
+
+	// Подключение к NATS Streaming
+	sc, err := stan.Connect("test-cluster", "subscriber")
+	if err != nil {
+		logging.Logger.Printf("Ошибка подключения к NATS Streaming серверу: %v", err)
+		runServerProcessesExceptNATSStreaming()
+		return
+	}
+	defer sc.Close()
+
+	// Подключение к PostgreSQL
+	db, err := models.GetDBConnection()
+	if err != nil {
+		logging.Logger.Fatalf("%v", err)
+	}
+	defer db.Close()
 
 	// Инициализируем функцию для обработки сообщений в канале NATS Streaming
 	handleOrder := func(msg *stan.Msg) {
@@ -84,33 +126,7 @@ func main() {
 	}
 	defer sub.Unsubscribe()
 
-	// Определяем хэндлер для получения данных о заказе из кэша по переданному с клиента OrderUID
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		// Подгружаем index.html
-		if r.URL.Path == "/" {
-			http.ServeFile(w, r, "index.html")
-			return
-		}
-		// получаем orderUID из запроса
-		orderUID := r.URL.Query().Get("order_uid")
-		// ищем заказ в кэше
-		orderJSON, ok := cache.OrderCache.Load(orderUID)
-		// обрабатываем ошибку, если заказ не найден в кэше
-		if !ok {
-			err := fmt.Errorf("заказ не найден")
-			http.Error(w, err.Error(), http.StatusNotFound)
-			return
-		}
+	// Запускаем процессы сервера, не связанные с NATS-streaming
+	runServerProcessesExceptNATSStreaming()
 
-		w.Header().Set("Content-Type", "application/json")
-		_, err := w.Write(orderJSON.([]byte))
-		// обрабатываем ошибку, если произошла ошибка во время записи заказа в response
-		if err != nil {
-			err := fmt.Errorf("error writing response: %v", err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		}
-	})
-
-	// Запуск HTTP-сервера
-	log.Fatal(http.ListenAndServe(":8080", nil))
 }

@@ -2,11 +2,18 @@ package models
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"time"
 
 	"github.com/PhilippNikitin/WBTECH-L0-task/tree/main/internal/logging"
 )
+
+// Объявляем глобальную переменную, которая будет хранить соединение с базой данных
+var db *sql.DB
+
+// Объявляем глобальную переменную, которая будет хранить ошибку, возникающую при подключении к базе данных
+var dbErr error
 
 // Определяем структуры, которые будут отражать информацию о заказе
 // Определяем тип Delivery
@@ -114,6 +121,19 @@ func SaveOrderInDatabase(db *sql.DB, order Order) error {
 	log.Printf("Заказ %s сохранен в базе данных.\n", order.OrderUID)
 	logging.Logger.Printf("Заказ %s сохранен в базе данных.\n", order.OrderUID)
 	return nil
+}
+
+func GetDBConnection() (*sql.DB, error) {
+	if db != nil {
+		return db, nil
+	}
+
+	db, dbErr = sql.Open("postgres", "user=admin password=admin dbname=orders sslmode=require")
+	if dbErr != nil {
+		return nil, fmt.Errorf("ошибка подключения к базе данных PostgreSQL: %v", dbErr)
+	}
+
+	return db, nil
 }
 
 // функция для получения данных о заказе напрямую из базы данных

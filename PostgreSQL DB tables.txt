@@ -1,3 +1,7 @@
+ENV DB_NAME=orders
+ENV DB_USER=admin
+ENV DB_PASSWORD=admin
+
 CREATE TABLE orders (
     order_uid VARCHAR(19) PRIMARY KEY,
     track_number VARCHAR(14) NOT NULL,
